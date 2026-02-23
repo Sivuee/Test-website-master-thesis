@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+
+    <nav class="p-6 bg-white shadow-sm flex justify-between items-center">
+        <h1 class="text-xl font-bold tracking-tight text-indigo-600">SANDBOX_LABS</h1>
+        <div class="space-x-4">
+            <span class="text-sm font-medium text-slate-500">Status: <span class="text-green-500">Live</span></span>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto mt-20 px-6 text-center">
+        <h2 class="text-5xl font-extrabold mb-6">Testing Vercel vs. Netlify</h2>
+        <p class="text-lg text-slate-600 mb-10">This is a sandbox environment to test deployment speeds, CI/CD pipelines, and global CDN performance.</p>
+        
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 inline-block">
+            <p class="text-sm uppercase tracking-widest text-slate-400 mb-2">Interactive Test</p>
+            <div id="count" class="text-6xl font-mono font-bold mb-4">0</div>
+            <button onclick="increment()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-semibold transition-all">
+                Click to Test JS
+            </button>
+        </div>
+    </main>
+
+    <script>
+        let count = 0;
+        function increment() {
+            count++;
+            document.getElementById('count').innerText = count;
+        }
+    </script>
+</body>
+</html>
