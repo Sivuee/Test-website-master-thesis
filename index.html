@@ -6,18 +6,31 @@
     <title>The Hollow - Accuracy Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-lg">
-        <h1 class="text-3xl font-serif font-bold mb-4 text-slate-800">The Hollow Plot Summary</h1>
-        <p class="text-slate-500 mb-6 italic">Correct the facts in the text below, then click "Analyze" to see your score.</p>
+<body class="bg-slate-100 p-6 min-h-screen">
+    
+    <div class="max-w-7xl mx-auto mb-6 text-center">
+        <h1 class="text-4xl font-serif font-bold text-slate-800">The Hollow Plot Summary</h1>
+        <p class="text-slate-500 italic mt-2">Compare the reference on the right and fix the facts in the editor on the left.</p>
+    </div>
 
-        <textarea id="editor" class="w-full h-96 p-6 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-lg leading-relaxed"></textarea>
-
-        <div class="mt-8 flex justify-center">
-            <button onclick="calculateAndRedirect()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-full font-bold text-lg transition-all shadow-md">
-                Analyze Results
-            </button>
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 lg:col-span-8">
+            <h2 class="text-xl font-bold mb-4 text-indigo-600 flex items-center">Text editor</h2>
+            <textarea id="editor" class="w-full h-[600px] p-6 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-lg leading-relaxed shadow-inner"></textarea>
+            
+            <div class="mt-8 flex justify-center">
+                <button onclick="calculateAndRedirect()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-4 rounded-full font-bold text-lg transition-all shadow-md transform hover:scale-105">
+                    Analyze Results
+                </button>
+            </div>
         </div>
+
+        <div id="warningBox" class="p-8 rounded-2xl shadow-lg text-slate-300 border lg:col-span-4 h-fit">
+            <h2 id="warningTitle" class="text-xl font-bold mb-4 flex items-center">Warning</h2>
+            <p id="warningText" class="font-bold text-white mt-2"></p>
+        </div>
+
     </div>
 
     <script>
@@ -29,6 +42,31 @@ Edward does not understand that Midge loves him too much to hold him back from H
 With the evidence apparently destroyed or suitably confused, the family believe they have saved Gerda. There is a final clue: the holster in which the murder weapon was kept. Gerda had cut this up and placed it in her workbag. Henrietta rushes to Gerda in an attempt to retrieve it and destroy the final proof of Gerda's guilt.
 Poirot arrives, and rearranges the tea cups before Gerda returns from the kitchen. He suspects the cornered and suspicious Gerda would murder Henrietta. Gerda returns and drinks from the cup intended for Henrietta, and dies. Henrietta seeks closure and visits one of John's patients. John's death ended the hope of a cure but she is still showing a resilient spirit. Leaving the hospital, she reflects that there is no happy ending for her. She resolves to embark on a sculpture of herself as "Grief".`;
 
+        // 1. A/B ASSIGNMENT LOGIC
+        let group = localStorage.getItem('abGroup');
+        if (!group) {
+            group = Math.random() > 0.5 ? 'A' : 'B';
+            localStorage.setItem('abGroup', group);
+        }
+
+        // 2. APPLY THE VISUALS BASED ON GROUP
+        const warningBox = document.getElementById('warningBox');
+        const warningTitle = document.getElementById('warningTitle');
+        const warningText = document.getElementById('warningText');
+
+        if (group == 'A') {
+            // Version A: Traditional "Supportive" Warning
+            warningBox.className += " bg-slate-800 border-slate-700";
+            warningTitle.className += " text-emerald-400";
+            warningText.innerText = "Gegenereerde AI content kan fouten bevatten. Verifieer altijd de gegenereerde content met je bronmateriaal!";
+        } else {
+            // Version B: Urgent/Strict Warning
+            warningBox.className += " bg-red-900 border-red-700";
+            warningTitle.className += " text-yellow-400";
+            warningText.innerText = "LET OP: Deze tekst bevat kritieke feitelijke onjuistheden. Vertrouw niet op de AI; gebruik de officiële bronnen!";
+        }
+
+        // 3. PREFILL TEXT
         const errorText = originalText
             .replace(/Savernake/g, "Pringle")
             .replace(/Hercule Poirot/g, "Sherlock Holmes")
@@ -40,14 +78,7 @@ Poirot arrives, and rearranges the tea cups before Gerda returns from the kitche
 
         function calculateAndRedirect() {
             const current = document.getElementById('editor').value;
-            
-            // Randomly assign A or B
-            const group = Math.random() > 0.5 ? 'A' : 'B';
-            
-            // Store data in localStorage to pass to the next page
             localStorage.setItem('userText', current);
-            localStorage.setItem('abGroup', group);
-            
             window.location.href = 'results.html';
         }
     </script>
