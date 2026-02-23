@@ -84,6 +84,8 @@ Poirot arrives, and rearranges the tea cups before Gerda returns from the kitche
             participantID: id,
         };
 
+        console.log(data);
+
         try {
             const response = await fetch('https://api.sheetbest.com/sheets/085506d9-d581-462b-917b-75ec472231e1', {
                 method: 'POST',
