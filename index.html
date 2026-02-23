@@ -3,48 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Hollow Plot Summary - Sandbox</title>
+    <title>The Hollow - Accuracy Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-8 font-sans">
+<body class="bg-slate-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-lg">
+        <h1 class="text-3xl font-serif font-bold mb-4 text-slate-800">The Hollow Plot Summary</h1>
+        <p class="text-slate-500 mb-6 italic">Correct the facts in the text below, then click "Analyze" to see your score.</p>
 
-    <div class="max-w-4xl mx-auto mb-6 flex justify-center space-x-4">
-        <button onclick="setVersion('A')" id="btnA" class="px-4 py-2 rounded shadow bg-indigo-600 text-white font-bold">Version A (Show Stats)</button>
-        <button onclick="setVersion('B')" id="btnB" class="px-4 py-2 rounded shadow bg-white text-slate-600 font-bold border">Version B (Hide Stats)</button>
-    </div>
+        <textarea id="editor" class="w-full h-96 p-6 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-lg leading-relaxed"></textarea>
 
-    <div class="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-2xl">
-        <h1 class="text-3xl font-serif font-bold mb-6 text-slate-800 border-b pb-4">The Hollow Plot Summary</h1>
-        
-        <p class="text-sm text-slate-500 mb-4 italic">Instruction: Correct the 5 factual errors in the text below to match the original story. The structure must remain identical.</p>
-
-        <div id="statsPanel" class="grid grid-cols-2 gap-4 mb-8">
-            <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-center">
-                <span class="block text-xs uppercase text-indigo-400 font-bold tracking-widest">Levenshtein Distance</span>
-                <span id="dist" class="text-4xl font-mono font-bold text-indigo-700">0</span>
-            </div>
-            <div class="p-4 bg-green-50 border border-green-100 rounded-xl text-center">
-                <span class="block text-xs uppercase text-green-400 font-bold tracking-widest">Factual Accuracy</span>
-                <span id="acc" class="text-4xl font-mono font-bold text-green-700">100%</span>
-            </div>
-        </div>
-
-        <textarea id="editor" class="w-full h-96 p-6 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 leading-relaxed focus:border-indigo-500 outline-none transition-all text-lg"></textarea>
-        
-        <div class="mt-6 flex justify-between items-center text-sm text-slate-400">
-            <p>Target: 0 Distance | 100% Accuracy</p>
-            <p id="versionLabel">Current Mode: Version A</p>
+        <div class="mt-8 flex justify-center">
+            <button onclick="calculateAndRedirect()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-full font-bold text-lg transition-all shadow-md">
+                Analyze Results
+            </button>
         </div>
     </div>
 
     <script>
-        // THE 5 ERRORS INTRODUCED:
-        // 1. "Henrietta Savernake" -> "Henrietta Pringle"
-        // 2. "Hercule Poirot" -> "Sherlock Holmes"
-        // 3. "swimming pool" -> "tennis court"
-        // 4. "gas oven" -> "electric toaster"
-        // 5. "Grief" -> "Joy"
-
         const originalText = `The eccentric Lucy Angkatell has invited the Christows, along with other members of her extended family, to her estate for the weekend. John Christow is carrying on an affair with Henrietta Savernake, a talented sculptor. The beautiful Veronica Cray, an old flame of Christow's, suddenly appears in the house on Saturday night to borrow a box of matches. She lives at a nearby cottage. Another cottage is occupied by Hercule Poirot, who has been invited for Sunday lunch. John walks Veronica back to her cottage, and returns home at 3 am. The next day, Poirot is witness to a scene that seems strangely staged. Gerda Christow stands with a gun in her hand next to John's body, as it bleeds into the swimming pool. Lucy, Henrietta, and Edward (a cousin of Lucy's and a second cousin of Henrietta) are also present at the scene. John utters a final urgent appeal, "Henrietta", and dies.
 It seems obvious that Gerda is the murderer. Henrietta steps forward to take the revolver from her hand, but apparently fumbles and drops it into the swimming pool, destroying the evidence. However, the pistol that Gerda was holding was not the gun used to kill John. None of the witnesses has seen Gerda shoot John. It seems difficult to build a case against any of the other potential suspects. Lucy was the next suspect, as she was seen with a gun in her basket of eggs. However, the gun was the wrong calibre. Henrietta is the next suspect, having left an unusual doodle in the pavilion around the time John was killed. When the murder weapon turns up in Poirot's hedge, it has fingerprints that match none of the suspects.
 The family had deliberately misdirected Poirot, as they each knew Gerda was the murderer, and were attempting to save her from imprisonment. Gerda had taken two pistols – shooting John with one, and then planning to be discovered with the other pistol in her hand, later proven not to be the murder weapon. Immediately, Henrietta understood that John's final appeal was for her to help Gerda. Instinctively, Henrietta assumed the responsibility by dropping the gun into the pool, and later goes back to retrieve the second weapon. She hides it in a clay sculpture of a horse in her workshop to avoid the police searches. Later, she gets it handled by a blind match-seller and then places it in Poirot's hedge.
@@ -60,52 +36,20 @@ Poirot arrives, and rearranges the tea cups before Gerda returns from the kitche
             .replace(/gas oven/g, "electric toaster")
             .replace(/Grief/g, "Joy");
 
-        const editor = document.getElementById('editor');
-        editor.value = errorText;
+        document.getElementById('editor').value = errorText;
 
-        function levenshtein(a, b) {
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    matrix[i][j] = b.charAt(i-1) === a.charAt(j-1) ? matrix[i-1][j-1] : Math.min(matrix[i-1][j-1]+1, matrix[i][j-1]+1, matrix[i-1][j]+1);
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-
-        function update() {
-            const current = editor.value;
-            const dist = levenshtein(originalText, current);
-            const max = Math.max(originalText.length, current.length);
-            const accuracy = ((1 - (dist / max)) * 100).toFixed(2);
+        function calculateAndRedirect() {
+            const current = document.getElementById('editor').value;
             
-            document.getElementById('dist').innerText = dist;
-            document.getElementById('acc').innerText = accuracy + "%";
+            // Randomly assign A or B
+            const group = Math.random() > 0.5 ? 'A' : 'B';
+            
+            // Store data in localStorage to pass to the next page
+            localStorage.setItem('userText', current);
+            localStorage.setItem('abGroup', group);
+            
+            window.location.href = 'results.html';
         }
-
-        function setVersion(v) {
-            const panel = document.getElementById('statsPanel');
-            const label = document.getElementById('versionLabel');
-            const btnA = document.getElementById('btnA');
-            const btnB = document.getElementById('btnB');
-
-            if (v === 'A') {
-                panel.style.display = 'grid';
-                label.innerText = "Current Mode: Version A (Stats Visible)";
-                btnA.className = "px-4 py-2 rounded shadow bg-indigo-600 text-white font-bold";
-                btnB.className = "px-4 py-2 rounded shadow bg-white text-slate-600 font-bold border";
-            } else {
-                panel.style.display = 'none';
-                label.innerText = "Current Mode: Version B (Stats Hidden)";
-                btnB.className = "px-4 py-2 rounded shadow bg-indigo-600 text-white font-bold";
-                btnA.className = "px-4 py-2 rounded shadow bg-white text-slate-600 font-bold border";
-            }
-        }
-
-        editor.addEventListener('input', update);
-        update(); // Init
     </script>
 </body>
 </html>
