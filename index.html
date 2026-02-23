@@ -42,28 +42,27 @@ Edward does not understand that Midge loves him too much to hold him back from H
 With the evidence apparently destroyed or suitably confused, the family believe they have saved Gerda. There is a final clue: the holster in which the murder weapon was kept. Gerda had cut this up and placed it in her workbag. Henrietta rushes to Gerda in an attempt to retrieve it and destroy the final proof of Gerda's guilt.
 Poirot arrives, and rearranges the tea cups before Gerda returns from the kitchen. He suspects the cornered and suspicious Gerda would murder Henrietta. Gerda returns and drinks from the cup intended for Henrietta, and dies. Henrietta seeks closure and visits one of John's patients. John's death ended the hope of a cure but she is still showing a resilient spirit. Leaving the hospital, she reflects that there is no happy ending for her. She resolves to embark on a sculpture of herself as "Grief".`;
 
-        // 1. A/B ASSIGNMENT LOGIC
-        let group = localStorage.getItem('abGroup');
-        if (!group) {
-            group = Math.random() > 0.5 ? 'A' : 'B';
-            localStorage.setItem('abGroup', group);
-        }
+        // 1. READ DATA FROM QUALTRICS URL
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('uid') || 'anonymous_' + Math.floor(Math.random() * 1000);
+        const condition = params.get('cond'); // 0 = baseline, 1 = cond1, 2 = cond2
 
-        // 2. APPLY THE VISUALS BASED ON GROUP
-        const warningBox = document.getElementById('warningBox');
-        const warningTitle = document.getElementById('warningTitle');
+        // Save these so results.html can see them
+        localStorage.setItem('qualtricsID', userId);
+        localStorage.setItem('experimentalCondition', condition);
+
+        // 2. APPLY WARNING MESSAGES BASED ON CONDITION
         const warningText = document.getElementById('warningText');
+        const warningBox = document.getElementById('warningBox');
 
-        if (group == 'A') {
-            // Version A: Traditional "Supportive" Warning
+        if (condition === '0') {
+            warningBox.style.display = 'none'; // Baseline: No warning
+        } else if (condition === '1') {
             warningBox.className += " bg-slate-800 border-slate-700";
-            warningTitle.className += " text-emerald-400";
-            warningText.innerText = "Gegenereerde AI content kan fouten bevatten. Verifieer altijd de gegenereerde content met je bronmateriaal!";
-        } else {
-            // Version B: Urgent/Strict Warning
+            warningText.innerText = "Gegenereerde AI content kan fouten bevatten. Verifieer altijd!";
+        } else if (condition === '2') {
             warningBox.className += " bg-red-900 border-red-700";
-            warningTitle.className += " text-yellow-400";
-            warningText.innerText = "LET OP: Deze tekst bevat kritieke feitelijke onjuistheden. Vertrouw niet op de AI; gebruik de officiële bronnen!";
+            warningText.innerText = "LET OP: Deze tekst bevat kritieke feitelijke onjuistheden!";
         }
 
         // 3. PREFILL TEXT

@@ -69,6 +69,29 @@ Poirot arrives, and rearranges the tea cups before Gerda returns from the kitche
         // Display Data
         document.getElementById('dist').innerText = distance;
         document.getElementById('acc').innerText = factualAccuracy + "%";
+        
+        //Save data to spreadsheet
+        async function saveData() {
+            const data = {
+                participantID: localStorage.getItem('qualtricsID'),
+                condition: localStorage.getItem('experimentalCondition'),
+                levenshtein: distance,
+                accuracy: factualAccuracy + "%",
+                finalText: userText // Your verification method
+            };
+
+            // Replace URL with your Sheet.best or Formspree Webhook URL
+            fetch('https://api.sheetbest.com/sheets/085506d9-d581-462b-917b-75ec472231e1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            })
+            .then(response => console.log('Data saved successfully'))
+            .catch(error => console.error('Error saving data:', error));
+        }
+
+        // Run this as soon as the results page loads
+        saveData();
     </script>
 </body>
 </html>
