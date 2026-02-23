@@ -25,7 +25,16 @@
     </div>
 
     <script>
-        const originalText = `The eccentric Lucy Angkatell has invited the Christows, along with other members of her extended family, to her estate for the weekend. John Christow is carrying on an affair with Henrietta Savernake, a talented sculptor. The beautiful Veronica Cray, an old flame of Christow's, suddenly appears in the house on Saturday night to borrow a box of matches. She lives at a nearby cottage. Another cottage is occupied by Hercule Poirot, who has been invited for Sunday lunch. John walks Veronica back to her cottage, and returns home at 3 am. The next day, Poirot is witness to a scene that seems strangely staged. Gerda Christow stands with a gun in her hand next to John's body, as it bleeds into the swimming pool. Lucy, Henrietta, and Edward (a cousin of Lucy's and a second cousin of Henrietta) are also present at the scene. John utters a final urgent appeal, "Henrietta", and dies.
+        // 1. DATA RETRIEVAL & DEBUGGING
+    const userText = localStorage.getItem('userText');
+    const qID = localStorage.getItem('qualtricsID');
+    const cond = localStorage.getItem('experimentalCondition');
+
+    console.log("Debug - Participant ID:", qID);
+    console.log("Debug - Condition:", cond);
+    console.log("Debug - Text received:", userText ? "Yes (Length: " + userText.length + ")" : "No");
+
+    const originalText = `The eccentric Lucy Angkatell has invited the Christows, along with other members of her extended family, to her estate for the weekend. John Christow is carrying on an affair with Henrietta Savernake, a talented sculptor. The beautiful Veronica Cray, an old flame of Christow's, suddenly appears in the house on Saturday night to borrow a box of matches. She lives at a nearby cottage. Another cottage is occupied by Hercule Poirot, who has been invited for Sunday lunch. John walks Veronica back to her cottage, and returns home at 3 am. The next day, Poirot is witness to a scene that seems strangely staged. Gerda Christow stands with a gun in her hand next to John's body, as it bleeds into the swimming pool. Lucy, Henrietta, and Edward (a cousin of Lucy's and a second cousin of Henrietta) are also present at the scene. John utters a final urgent appeal, "Henrietta", and dies.
 It seems obvious that Gerda is the murderer. Henrietta steps forward to take the revolver from her hand, but apparently fumbles and drops it into the swimming pool, destroying the evidence. However, the pistol that Gerda was holding was not the gun used to kill John. None of the witnesses has seen Gerda shoot John. It seems difficult to build a case against any of the other potential suspects. Lucy was the next suspect, as she was seen with a gun in her basket of eggs. However, the gun was the wrong calibre. Henrietta is the next suspect, having left an unusual doodle in the pavilion around the time John was killed. When the murder weapon turns up in Poirot's hedge, it has fingerprints that match none of the suspects.
 The family had deliberately misdirected Poirot, as they each knew Gerda was the murderer, and were attempting to save her from imprisonment. Gerda had taken two pistols – shooting John with one, and then planning to be discovered with the other pistol in her hand, later proven not to be the murder weapon. Immediately, Henrietta understood that John's final appeal was for her to help Gerda. Instinctively, Henrietta assumed the responsibility by dropping the gun into the pool, and later goes back to retrieve the second weapon. She hides it in a clay sculpture of a horse in her workshop to avoid the police searches. Later, she gets it handled by a blind match-seller and then places it in Poirot's hedge.
 Midge Hardcastle, a less affluent relative of the Angkatells, is also staying at the house. She is in love with Edward, but Edward has always been in love with Henrietta, who had refused several of his marriage proposals. Edward comes to the realisation that Henrietta is no longer the Henrietta he once loved. He looks at Midge and realises that she is no longer "little Midge". Edward asks her to marry him. He goes for a walk with Midge, but coming to a spot where Edward has previously walked with Henrietta, Midge believes that he is still too deeply in love with Henrietta. So, she calls off the wedding.
@@ -33,65 +42,67 @@ Edward does not understand that Midge loves him too much to hold him back from H
 With the evidence apparently destroyed or suitably confused, the family believe they have saved Gerda. There is a final clue: the holster in which the murder weapon was kept. Gerda had cut this up and placed it in her workbag. Henrietta rushes to Gerda in an attempt to retrieve it and destroy the final proof of Gerda's guilt.
 Poirot arrives, and rearranges the tea cups before Gerda returns from the kitchen. He suspects the cornered and suspicious Gerda would murder Henrietta. Gerda returns and drinks from the cup intended for Henrietta, and dies. Henrietta seeks closure and visits one of John's patients. John's death ended the hope of a cure but she is still showing a resilient spirit. Leaving the hospital, she reflects that there is no happy ending for her. She resolves to embark on a sculpture of herself as "Grief".`;
 
-        function levenshtein(a, b) {
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // substitution
-                            matrix[i][j - 1] + 1,     // insertion
-                            matrix[i - 1][j] + 1      // deletion
-                        );
-                    }
-                }
+    // 2. LEVENSHTEIN FUNCTION
+    function levenshtein(a, b) {
+        if (!a || !b) return 0;
+        const matrix = [];
+        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+                else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
             }
-            return matrix[b.length][a.length];
         }
+        return matrix[b.length][a.length];
+    }
 
-        const userText = localStorage.getItem('userText');
-        const msgBox = document.getElementById('messageBox');
-
-        // Calculate Factual Accuracy
+    // 3. EXECUTION BLOCK
+    if (userText) {
+        // Calculate Distance
+        const distance = levenshtein(originalText, userText);
+        
+        // Calculate Accuracy
         const keys = ["Savernake", "Hercule Poirot", "swimming pool", "gas oven", "Grief"];
         let fixes = 0;
         keys.forEach(k => { if(userText.includes(k)) fixes++; });
         const factualAccuracy = fixes * 20;
 
-        // Calculate Distance
-        const distance = levenshtein(originalText, userText);
-
-        // Display Data
+        // Update UI
         document.getElementById('dist').innerText = distance;
         document.getElementById('acc').innerText = factualAccuracy + "%";
-        
-        //Save data to spreadsheet
-        async function saveData() {
-            const data = {
-                participantID: localStorage.getItem('qualtricsID'),
-                condition: localStorage.getItem('experimentalCondition'),
-                levenshtein: distance,
-                accuracy: factualAccuracy + "%",
-                finalText: userText // Your verification method
-            };
 
-            // Replace URL with your Sheet.best or Formspree Webhook URL
-            fetch('https://api.sheetbest.com/sheets/085506d9-d581-462b-917b-75ec472231e1', {
+        // Trigger Save
+        saveData(distance, factualAccuracy, userText, qID, cond);
+    } else {
+        alert("No text found to analyze. Please go back and enter text.");
+    }
+
+    // 4. SAVE FUNCTION
+    async function saveData(d, acc, text, id, c) {
+        const data = {
+            participantID: id,
+            condition: c,
+            levenshtein: d,
+            accuracy: acc + "%",
+            finalText: text 
+        };
+
+        try {
+            const response = await fetch('https://api.sheetbest.com/sheets/085506d9-d581-462b-917b-75ec472231e1', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
-            })
-            .then(response => console.log('Data saved successfully'))
-            .catch(error => console.error('Error saving data:', error));
+            });
+            if (response.ok) {
+                console.log('✅ Data saved to Sheet.best');
+            } else {
+                console.error('❌ Server responded with error:', response.status);
+            }
+        } catch (error) {
+            console.error('❌ Network error:', error);
         }
-
-        // Run this as soon as the results page loads
-        saveData();
+    }
     </script>
 </body>
 </html>
