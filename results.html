@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-8">
+    <div class="max-w-2xl mx-auto bg-white p-10 rounded-2xl shadow-xl border border-slate-100">
+        <h2 class="text-2xl font-bold mb-6">Analysis Report</h2>
+        
+        <div id="messageBox" class="p-4 rounded-lg mb-8 text-center font-medium"></div>
+
+        <div class="space-y-6">
+            <div class="flex justify-between items-center border-b pb-4">
+                <span class="text-slate-500 uppercase tracking-wide text-sm font-bold">Levenshtein Distance</span>
+                <span id="dist" class="text-3xl font-mono font-bold text-indigo-600">--</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-slate-500 uppercase tracking-wide text-sm font-bold">Factual Accuracy</span>
+                <span id="acc" class="text-3xl font-mono font-bold text-green-600">--%</span>
+            </div>
+        </div>
+
+        <button onclick="window.location.href='index.html'" class="mt-10 w-full py-3 text-slate-400 hover:text-indigo-600 transition text-sm">← Try Again</button>
+    </div>
+
+    <script>
+        const originalText = `[Paste the same long original text from above here]`;
+
+        function levenshtein(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    matrix[i][j] = b.charAt(i-1) === a.charAt(j-1) ? matrix[i-1][j-1] : Math.min(matrix[i-1][j-1]+1, matrix[i][j-1]+1, matrix[i-1][j]+1);
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        const userText = localStorage.getItem('userText');
+        const group = localStorage.getItem('abGroup');
+        const msgBox = document.getElementById('messageBox');
+
+        // Calculate Factual Accuracy (20% per keyword fixed)
+        const keys = ["Savernake", "Hercule Poirot", "swimming pool", "gas oven", "Grief"];
+        let fixes = 0;
+        keys.forEach(k => { if(userText.includes(k)) fixes++; });
+        const factualAccuracy = fixes * 20;
+
+        // Calculate Distance
+        const distance = levenshtein(originalText, userText);
+
+        // Display Data
+        document.getElementById('dist').innerText = distance;
+        document.getElementById('acc').innerText = factualAccuracy + "%";
+
+        // A/B Message Logic
+        if(group === 'A') {
+            msgBox.innerText = "Excellent work! Your attention to detail is impressive and you're making great progress.";
+            msgBox.className += " bg-green-100 text-green-700";
+        } else {
+            msgBox.innerText = "Your performance is subpar. You failed to catch several obvious errors. Try harder.";
+            msgBox.className += " bg-red-100 text-red-700";
+        }
+    </script>
+</body>
+</html>
