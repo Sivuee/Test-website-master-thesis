@@ -3,36 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sandbox Project</title>
+    <title>ECR Analyzer Sandbox</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans">
-
-    <nav class="p-6 bg-white shadow-sm flex justify-between items-center">
-        <h1 class="text-xl font-bold tracking-tight text-indigo-600">SANDBOX_LABS</h1>
-        <div class="space-x-4">
-            <span class="text-sm font-medium text-slate-500">Status: <span class="text-green-500">Live</span></span>
-        </div>
-    </nav>
-
-    <main class="max-w-4xl mx-auto mt-20 px-6 text-center">
-        <h2 class="text-5xl font-extrabold mb-6">Testing Vercel vs. Netlify</h2>
-        <p class="text-lg text-slate-600 mb-10">This is a sandbox environment to test deployment speeds, CI/CD pipelines, and global CDN performance.</p>
+<body class="bg-slate-100 p-8">
+    <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold mb-4 text-indigo-700">Error Correction Rate (ECR) Tool</h1>
         
-        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 inline-block">
-            <p class="text-sm uppercase tracking-widest text-slate-400 mb-2">Interactive Test</p>
-            <div id="count" class="text-6xl font-mono font-bold mb-4">0</div>
-            <button onclick="increment()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-semibold transition-all">
-                Click to Test JS
-            </button>
+        <div class="mb-6">
+            <label class="block text-sm font-semibold text-slate-500 uppercase mb-2">Original Text (Reference)</label>
+            <div id="originalText" class="p-4 bg-slate-50 border rounded text-slate-700 italic">
+                The quick brown fox jumps over the lazy dog.
+            </div>
         </div>
-    </main>
+
+        <div class="mb-6">
+            <label class="block text-sm font-semibold text-slate-500 uppercase mb-2">Your Correction</label>
+            <textarea id="userInput" rows="3" class="w-full p-4 border-2 border-indigo-100 rounded-lg focus:border-indigo-500 outline-none transition-all" placeholder="Retype or correct the text above..."></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="p-4 bg-indigo-50 rounded-lg text-center">
+                <span class="block text-xs uppercase text-indigo-400 font-bold">Levenshtein Distance</span>
+                <span id="distanceCount" class="text-3xl font-mono font-bold text-indigo-700">0</span>
+            </div>
+            <div class="p-4 bg-green-50 rounded-lg text-center">
+                <span class="block text-xs uppercase text-green-400 font-bold">Accuracy Rate</span>
+                <span id="accuracyRate" class="text-3xl font-mono font-bold text-green-700">100%</span>
+            </div>
+        </div>
+
+        <button onclick="analyzeText()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Run Analysis</button>
+    </div>
 
     <script>
-        let count = 0;
-        function increment() {
-            count++;
-            document.getElementById('count').innerText = count;
+        function levenshtein(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1, // substitution
+                            matrix[i][j - 1] + 1,     // insertion
+                            matrix[i - 1][j] + 1      // deletion
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function analyzeText() {
+            const original = document.getElementById('originalText').innerText.trim();
+            const input = document.getElementById('userInput').value.trim();
+            
+            const distance = levenshtein(original, input);
+            const maxLength = Math.max(original.length, input.length);
+            
+            // Calculate Accuracy / ECR
+            // Formula: 1 - (distance / total length)
+            const accuracy = maxLength === 0 ? 100 : ((1 - (distance / maxLength)) * 100).toFixed(2);
+
+            document.getElementById('distanceCount').innerText = distance;
+            document.getElementById('accuracyRate').innerText = accuracy + "%";
         }
     </script>
 </body>
