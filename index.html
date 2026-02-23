@@ -55,12 +55,12 @@ Poirot arrives, and rearranges the tea cups before Gerda returns from the kitche
         const warningText = document.getElementById('warningText');
         const warningBox = document.getElementById('warningBox');
 
-        if (condition === '0') {
+        if (condition === 'Baseline') {
             warningBox.style.display = 'none'; // Baseline: No warning
-        } else if (condition === '1') {
+        } else if (condition === 'Condition 1') {
             warningBox.className += " bg-slate-800 border-slate-700";
             warningText.innerText = "Gegenereerde AI content kan fouten bevatten. Verifieer altijd!";
-        } else if (condition === '2') {
+        } else if (condition === 'Condition 2') {
             warningBox.className += " bg-red-900 border-red-700";
             warningText.innerText = "LET OP: Deze tekst bevat kritieke feitelijke onjuistheden!";
         }
