@@ -3,75 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECR Analyzer Sandbox</title>
+    <title>The Hollow Plot Summary - Sandbox</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-8">
-    <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <h1 class="text-2xl font-bold mb-4 text-indigo-700">Error Correction Rate (ECR) Tool</h1>
+<body class="bg-slate-100 p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto mb-6 flex justify-center space-x-4">
+        <button onclick="setVersion('A')" id="btnA" class="px-4 py-2 rounded shadow bg-indigo-600 text-white font-bold">Version A (Show Stats)</button>
+        <button onclick="setVersion('B')" id="btnB" class="px-4 py-2 rounded shadow bg-white text-slate-600 font-bold border">Version B (Hide Stats)</button>
+    </div>
+
+    <div class="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-2xl">
+        <h1 class="text-3xl font-serif font-bold mb-6 text-slate-800 border-b pb-4">The Hollow Plot Summary</h1>
         
-        <div class="mb-6">
-            <label class="block text-sm font-semibold text-slate-500 uppercase mb-2">Original Text (Reference)</label>
-            <div id="originalText" class="p-4 bg-slate-50 border rounded text-slate-700 italic">
-                The quick brown fox jumps over the lazy dog.
+        <p class="text-sm text-slate-500 mb-4 italic">Instruction: Correct the 5 factual errors in the text below to match the original story. The structure must remain identical.</p>
+
+        <div id="statsPanel" class="grid grid-cols-2 gap-4 mb-8">
+            <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-center">
+                <span class="block text-xs uppercase text-indigo-400 font-bold tracking-widest">Levenshtein Distance</span>
+                <span id="dist" class="text-4xl font-mono font-bold text-indigo-700">0</span>
+            </div>
+            <div class="p-4 bg-green-50 border border-green-100 rounded-xl text-center">
+                <span class="block text-xs uppercase text-green-400 font-bold tracking-widest">Factual Accuracy</span>
+                <span id="acc" class="text-4xl font-mono font-bold text-green-700">100%</span>
             </div>
         </div>
 
-        <div class="mb-6">
-            <label class="block text-sm font-semibold text-slate-500 uppercase mb-2">Your Correction</label>
-            <textarea id="userInput" rows="3" class="w-full p-4 border-2 border-indigo-100 rounded-lg focus:border-indigo-500 outline-none transition-all" placeholder="Retype or correct the text above..."></textarea>
+        <textarea id="editor" class="w-full h-96 p-6 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 leading-relaxed focus:border-indigo-500 outline-none transition-all text-lg"></textarea>
+        
+        <div class="mt-6 flex justify-between items-center text-sm text-slate-400">
+            <p>Target: 0 Distance | 100% Accuracy</p>
+            <p id="versionLabel">Current Mode: Version A</p>
         </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="p-4 bg-indigo-50 rounded-lg text-center">
-                <span class="block text-xs uppercase text-indigo-400 font-bold">Levenshtein Distance</span>
-                <span id="distanceCount" class="text-3xl font-mono font-bold text-indigo-700">0</span>
-            </div>
-            <div class="p-4 bg-green-50 rounded-lg text-center">
-                <span class="block text-xs uppercase text-green-400 font-bold">Accuracy Rate</span>
-                <span id="accuracyRate" class="text-3xl font-mono font-bold text-green-700">100%</span>
-            </div>
-        </div>
-
-        <button onclick="analyzeText()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Run Analysis</button>
     </div>
 
     <script>
+        // THE 5 ERRORS INTRODUCED:
+        // 1. "Henrietta Savernake" -> "Henrietta Pringle"
+        // 2. "Hercule Poirot" -> "Sherlock Holmes"
+        // 3. "swimming pool" -> "tennis court"
+        // 4. "gas oven" -> "electric toaster"
+        // 5. "Grief" -> "Joy"
+
+        const originalText = `The eccentric Lucy Angkatell has invited the Christows, along with other members of her extended family, to her estate for the weekend. John Christow is carrying on an affair with Henrietta Savernake, a talented sculptor. The beautiful Veronica Cray, an old flame of Christow's, suddenly appears in the house on Saturday night to borrow a box of matches. She lives at a nearby cottage. Another cottage is occupied by Hercule Poirot, who has been invited for Sunday lunch. John walks Veronica back to her cottage, and returns home at 3 am. The next day, Poirot is witness to a scene that seems strangely staged. Gerda Christow stands with a gun in her hand next to John's body, as it bleeds into the swimming pool. Lucy, Henrietta, and Edward (a cousin of Lucy's and a second cousin of Henrietta) are also present at the scene. John utters a final urgent appeal, "Henrietta", and dies.
+It seems obvious that Gerda is the murderer. Henrietta steps forward to take the revolver from her hand, but apparently fumbles and drops it into the swimming pool, destroying the evidence. However, the pistol that Gerda was holding was not the gun used to kill John. None of the witnesses has seen Gerda shoot John. It seems difficult to build a case against any of the other potential suspects. Lucy was the next suspect, as she was seen with a gun in her basket of eggs. However, the gun was the wrong calibre. Henrietta is the next suspect, having left an unusual doodle in the pavilion around the time John was killed. When the murder weapon turns up in Poirot's hedge, it has fingerprints that match none of the suspects.
+The family had deliberately misdirected Poirot, as they each knew Gerda was the murderer, and were attempting to save her from imprisonment. Gerda had taken two pistols – shooting John with one, and then planning to be discovered with the other pistol in her hand, later proven not to be the murder weapon. Immediately, Henrietta understood that John's final appeal was for her to help Gerda. Instinctively, Henrietta assumed the responsibility by dropping the gun into the pool, and later goes back to retrieve the second weapon. She hides it in a clay sculpture of a horse in her workshop to avoid the police searches. Later, she gets it handled by a blind match-seller and then places it in Poirot's hedge.
+Midge Hardcastle, a less affluent relative of the Angkatells, is also staying at the house. She is in love with Edward, but Edward has always been in love with Henrietta, who had refused several of his marriage proposals. Edward comes to the realisation that Henrietta is no longer the Henrietta he once loved. He looks at Midge and realises that she is no longer "little Midge". Edward asks her to marry him. He goes for a walk with Midge, but coming to a spot where Edward has previously walked with Henrietta, Midge believes that he is still too deeply in love with Henrietta. So, she calls off the wedding.
+Edward does not understand that Midge loves him too much to hold him back from Henrietta. Misunderstanding her decision, he attempts suicide by putting his head in a gas oven but he is saved by Midge. With this dramatic proof of his despair at losing her, she relents and the wedding is on again.
+With the evidence apparently destroyed or suitably confused, the family believe they have saved Gerda. There is a final clue: the holster in which the murder weapon was kept. Gerda had cut this up and placed it in her workbag. Henrietta rushes to Gerda in an attempt to retrieve it and destroy the final proof of Gerda's guilt.
+Poirot arrives, and rearranges the tea cups before Gerda returns from the kitchen. He suspects the cornered and suspicious Gerda would murder Henrietta. Gerda returns and drinks from the cup intended for Henrietta, and dies. Henrietta seeks closure and visits one of John's patients. John's death ended the hope of a cure but she is still showing a resilient spirit. Leaving the hospital, she reflects that there is no happy ending for her. She resolves to embark on a sculpture of herself as "Grief".`;
+
+        const errorText = originalText
+            .replace(/Savernake/g, "Pringle")
+            .replace(/Hercule Poirot/g, "Sherlock Holmes")
+            .replace(/swimming pool/g, "tennis court")
+            .replace(/gas oven/g, "electric toaster")
+            .replace(/Grief/g, "Joy");
+
+        const editor = document.getElementById('editor');
+        editor.value = errorText;
+
         function levenshtein(a, b) {
             const matrix = [];
             for (let i = 0; i <= b.length; i++) matrix[i] = [i];
             for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
             for (let i = 1; i <= b.length; i++) {
                 for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // substitution
-                            matrix[i][j - 1] + 1,     // insertion
-                            matrix[i - 1][j] + 1      // deletion
-                        );
-                    }
+                    matrix[i][j] = b.charAt(i-1) === a.charAt(j-1) ? matrix[i-1][j-1] : Math.min(matrix[i-1][j-1]+1, matrix[i][j-1]+1, matrix[i-1][j]+1);
                 }
             }
             return matrix[b.length][a.length];
         }
 
-        function analyzeText() {
-            const original = document.getElementById('originalText').innerText.trim();
-            const input = document.getElementById('userInput').value.trim();
+        function update() {
+            const current = editor.value;
+            const dist = levenshtein(originalText, current);
+            const max = Math.max(originalText.length, current.length);
+            const accuracy = ((1 - (dist / max)) * 100).toFixed(2);
             
-            const distance = levenshtein(original, input);
-            const maxLength = Math.max(original.length, input.length);
-            
-            // Calculate Accuracy / ECR
-            // Formula: 1 - (distance / total length)
-            const accuracy = maxLength === 0 ? 100 : ((1 - (distance / maxLength)) * 100).toFixed(2);
-
-            document.getElementById('distanceCount').innerText = distance;
-            document.getElementById('accuracyRate').innerText = accuracy + "%";
+            document.getElementById('dist').innerText = dist;
+            document.getElementById('acc').innerText = accuracy + "%";
         }
+
+        function setVersion(v) {
+            const panel = document.getElementById('statsPanel');
+            const label = document.getElementById('versionLabel');
+            const btnA = document.getElementById('btnA');
+            const btnB = document.getElementById('btnB');
+
+            if (v === 'A') {
+                panel.style.display = 'grid';
+                label.innerText = "Current Mode: Version A (Stats Visible)";
+                btnA.className = "px-4 py-2 rounded shadow bg-indigo-600 text-white font-bold";
+                btnB.className = "px-4 py-2 rounded shadow bg-white text-slate-600 font-bold border";
+            } else {
+                panel.style.display = 'none';
+                label.innerText = "Current Mode: Version B (Stats Hidden)";
+                btnB.className = "px-4 py-2 rounded shadow bg-indigo-600 text-white font-bold";
+                btnA.className = "px-4 py-2 rounded shadow bg-white text-slate-600 font-bold border";
+            }
+        }
+
+        editor.addEventListener('input', update);
+        update(); // Init
     </script>
 </body>
 </html>
