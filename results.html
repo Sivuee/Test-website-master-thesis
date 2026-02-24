@@ -88,21 +88,26 @@ Poirot arrives, and rearranges the tea cups before Gerda returns from the kitche
             finalText: text 
         };
 
-        console.log(data);
-
         try {
-            const response = await fetch('https://api.sheetbest.com/sheets/d555be01-ac4a-4074-87df-2be89077d7b1', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
-            if (response.ok) {
-                console.log('✅ Data saved to Sheet.best');
-            } else {
-                console.error('❌ Server responded with error:', response.status);
-            }
+        // REPLACE THIS URL with your actual Formspree endpoint
+        const FORMSPREE_URL = 'https://formspree.io/f/mqedwepd';
+
+        const response = await fetch(FORMSPREE_URL, {
+            method: 'POST',
+            headers: { 
+                'Accept': 'application/json', 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(data),
+        });
+        
+        if (response.ok) {
+            console.log('✅ Data sent to Formspree successfully');
+        } else {
+            console.error('❌ Formspree Error:', response.status);
+        }
         } catch (error) {
-            console.error('❌ Network error:', error);
+            console.error('❌ Connection Error:', error);
         }
     }
     </script>
